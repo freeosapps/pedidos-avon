@@ -1,0 +1,148 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="manifest" href="manifest.json"></link>
+    <meta charset="utf-8">
+
+
+
+    <meta name="viewport" content="minimal-ui, width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <style>
+
+      .view-page {
+        display: none;
+      }
+    </style>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cloudinary-jquery@2.3.0/cloudinary-jquery.min.js"></script>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tooltipster@4.2.5/dist/css/tooltipster.bundle.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tooltipster@4.2.5/dist/css/plugins/tooltipster/sideTip/themes/tooltipster-sideTip-noir.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tooltipster@4.2.5/dist/css/plugins/tooltipster/sideTip/themes/tooltipster-sideTip-shadow.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tooltipster@4.2.5/dist/css/plugins/tooltipster/sideTip/themes/tooltipster-sideTip-punk.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/tooltipster@4.2.5/dist/js/tooltipster.bundle.min.js"></script>
+
+  <script src="https://code.jquery.com/jquery-migrate-3.0.1.min.js" integrity="sha256-F0O1TmEa4I8N24nY0bya59eP6svWcshqX1uzwaWC4F4=" crossorigin="anonymous"></script>
+
+  <script src="ambiente-execucao.js"></script>
+  <script src="reconhecimento-voz.js"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  <script>
+  $(document).ready(function() {
+    if (!AmbienteDeExecucao.possivelExecutar()) {
+      AmbienteDeExecucao.exibirMensagemDeErro(document.body);
+    } else {
+      $.get('http://192.168.0.2:3000/indice_v8tvcb', function(json) {
+        var image = $('<img>');
+        image.prop('src', json.secure_url);
+        image.css({position: 'absolute', top: 0, left: 0});
+        $(document.body).append(image);
+
+        var annotations = json.textAnnotations;
+        for (var i = 0; i < annotations.length; i++) {
+          var productCodeMarker = $('<div>');
+          var vertices = annotations[i].boundingPoly.vertices;
+          productCodeMarker.addClass('product-code-marker');
+          productCodeMarker.on('click', function() {
+            var tooltipStatus = $('.product-code-marker').tooltipster('status').state;
+            if (tooltipStatus == 'appearing' || tooltipStatus == 'stable') {
+              $('.product-code-marker').css({
+                backgroundColor: 'rgba(255, 255, 0, 0.5)',
+                borderColor: 'black'
+              });
+            } else if (tooltipStatus == 'disappearing'){
+              image.hide();
+
+              var newOrder = $('<div>');
+              newOrder.css({
+                'width': '100%',
+                'height': '100%',
+                'backgroundColor': 'white',
+                'position': 'absolute',
+                'top': 0,
+                'left': 0
+              });
+              var customerQuestion = $('<div>');
+              customerQuestion.text('Qual é o nome do cliente?');
+              customerQuestion.css({
+                'textAlign': 'center'
+              });
+
+              var customer = $('<input>');
+              customer.prop('type', 'text');
+              customer.prop('accept', 'audio/*;capture=microphone');
+
+              customer.css({
+                'width': '100%'
+              });
+
+              newOrder.append(customerQuestion);
+              newOrder.append(customer);
+
+              var message = new SpeechSynthesisUtterance('Qual é o nome do cliente?');
+              message.lang = 'pt-BR';
+              window.speechSynthesis.speak(message);
+              message.onend = function(e) {
+                //customer.focus();
+                ReconhecimentoDeVoz.iniciar();
+              };
+
+
+              $(document.body).append(newOrder);
+
+              // Só depois de finalizar a anotação é que o marcador desaparece
+              $('.product-code-marker').css({
+                backgroundColor: 'transparent',
+                borderColor: 'transparent'
+              });
+            }
+          });
+          productCodeMarker.prop('title', 'Toque mais uma vez no código do produto para anotar o pedido');
+          productCodeMarker.prop('data-product-code', annotations[i].description);
+          productCodeMarker.css({
+            //backgroundColor: 'transparent',
+            //borderColor: 'transparent',
+            borderWidth: '2px',
+            borderStyle: 'dotted',
+            padding: '20px',
+            borderRadius: '50px',
+            position: 'absolute',
+            top: vertices[0].y - 20,
+            left: vertices[0].x - 20,
+            width: vertices[2].x - vertices[0].x,
+            height: vertices[2].y - vertices[0].y
+          });
+          $(document.body).append(productCodeMarker);
+
+          $('.product-code-marker').tooltipster({
+            theme: 'tooltipster-punk',
+            functionPosition: function(instance, helper, position){
+              position.coord.top += 20;
+              return position;
+            },
+            trigger: 'custom',
+            triggerOpen: {
+              mouseenter: true,
+              touchstart: true
+            },
+            triggerClose: {
+              click: true,
+              scroll: true,
+              tap: true
+            }
+          });
+        }
+      });
+    }
+  });
+  </script>
+
+</head>
+<body>
+
+</body>
+</html>
