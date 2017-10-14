@@ -87,8 +87,8 @@
               message.lang = 'pt-BR';
               window.speechSynthesis.speak(message);
               message.onend = function(e) {
-                //customer.focus();
-                ReconhecimentoDeVoz.iniciar();
+                customer.focus();
+                ReconhecimentoDeVoz.iniciar(customer);
               };
 
 

@@ -1,9 +1,8 @@
 var ReconhecimentoDeVoz = {
-  iniciar: function() {
+  iniciar: function(campo) {
     navigator.getUserMedia({
       audio: true,
     }, function(stream) {
-alert('foi');
       var recognition = new SpeechRecognition();
 
       recognition.continuous = true;
@@ -15,10 +14,9 @@ alert('foi');
       recognition.onresult = function(event) {
         for (var i = event.resultIndex; i < event.results.length; ++i) {
             if (event.results[i].isFinal) {
-                document.write(event.results[i][0].transcript);
+                $(campo).val($(campo).val() + (event.results[i][0].transcript));
             }
         }
-        //recognition.stop();
       };
 
       recognition.onerror = function(e) {
