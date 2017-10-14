@@ -36,7 +36,7 @@
     if (!AmbienteDeExecucao.possivelExecutar()) {
       AmbienteDeExecucao.exibirMensagemDeErro(document.body);
     } else {
-      $.get('http://192.168.0.2:3000/indice_v8tvcb', function(json) {
+      $.get('https://freeosapps.tk:3000/indice_v8tvcb', function(json) {
         var image = $('<img>');
         image.prop('src', json.secure_url);
         image.css({position: 'absolute', top: 0, left: 0});

@@ -1,4 +1,7 @@
 
+ const https = require('https');
+ const fs = require('fs');
+
 
 var express = require("express");
  var app = express();
@@ -41,6 +44,18 @@ var express = require("express");
 
  var port = process.env.PORT || 3000;
 
+/*
  app.listen(port, function() {
    console.log("Listening on " + port);
  });
+*/
+
+ var privateKey = fs.readFileSync( 'domain-key.txt' );
+var certificate = fs.readFileSync( 'domain-crt.txt' );
+
+https.createServer({
+    key: privateKey,
+    cert: certificate
+}, app).listen(port, function() {
+  console.log("Listening on " + port);
+});
