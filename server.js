@@ -19,25 +19,29 @@ var express = require("express");
    cloudinary.v2.api.update(req.params.public_id,
      { ocr: "adv_ocr" },
      function(error, result) {
-       //console.log(error);
-       //console.log(result);
-
-       var annotations = result.info.ocr.adv_ocr.data[0].textAnnotations;
-
-       var productCodes = [];
-
-       for (var i = 0; i < annotations.length; i++) {
-         if (annotations[i].description.match(/^\d{5}-\d{1}$/)) {
-           productCodes.push({
-             description: annotations[i].description,
-             boundingPoly: annotations[i].boundingPoly
-           });
-         }
+       if (error) {
+         console.error('error:', error);
        }
 
-       res.setHeader("Content-Type", "application/json");
-       res.setHeader("Access-Control-Allow-Origin", "*");
-       res.send({secure_url: result.secure_url, textAnnotations: productCodes});
+       // Por algum motivo há 2 requisições para a mesma imagem.
+       if (result) {
+         var annotations = result.info.ocr.adv_ocr.data[0].textAnnotations;
+
+         var productCodes = [];
+
+         for (var i = 0; i < annotations.length; i++) {
+           if (annotations[i].description.match(/^\d{5}-\d{1}$/)) {
+             productCodes.push({
+               description: annotations[i].description,
+               boundingPoly: annotations[i].boundingPoly
+             });
+           }
+         }
+
+         res.setHeader("Content-Type", "application/json");
+         res.setHeader("Access-Control-Allow-Origin", "*");
+         res.send({secure_url: result.secure_url, textAnnotations: productCodes});
+       }
      }
    );
  });
