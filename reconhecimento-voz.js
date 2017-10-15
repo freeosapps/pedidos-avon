@@ -3,7 +3,7 @@ var ReconhecimentoDeVoz = {
     navigator.getUserMedia({
       audio: true,
     }, function(stream) {
-      var recognition = new SpeechRecognition();
+      var recognition = new webkitSpeechRecognition();
 
       recognition.continuous = true;
       recognition.interimResults = true;
